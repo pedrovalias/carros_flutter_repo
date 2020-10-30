@@ -11,17 +11,19 @@ class LoginApi {
     // Configuracao
     Map<String, String> headers = {"Content-Type": "application/json"};
 
-    Map parametros = {"username": login, "password": senha, headers: headers};
+    Map parametros = {"username": login, "password": senha};
 
     // Converte o hashmap para string
     String s = json.encode(parametros);
     print("> $s");
 
     // Retorna a resposta do post no webservice
-    var response = await http.post(url,
-        // passa a string para o body
-        body: s,
-        headers: headers);
+    var response = await http.post(
+      url,
+      // passa a string para o body
+      body: s,
+      headers: headers,
+    );
 
     // Imprime o status code da resposta do webservice
     print('Response status: ${response.statusCode}');
