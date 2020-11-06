@@ -1,8 +1,10 @@
 import 'package:carros_flutter/carro/carro.dart';
 
 class CarrosApi {
-  static List<Carro> getCarros() {
+  static Future<List<Carro>> getCarros() async {
     final carros = List<Carro>();
+
+    await Future.delayed(Duration(seconds: 2));
 
     carros.add(Carro(
         nome: "AUDI GT Spyder",

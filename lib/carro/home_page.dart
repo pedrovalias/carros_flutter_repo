@@ -16,35 +16,86 @@ class HomePage extends StatelessWidget {
   }
 
   _body() {
-    List<Carro> carros = CarrosApi.getCarros();
+    Future<List<Carro>> future = CarrosApi.getCarros();
 
-    return ListView.builder(
-      itemCount: carros.length,
-      itemBuilder: (
-        context,
-        index,
-      ) {
-        Carro c = carros[index];
+    // Aula 106
+    return FutureBuilder(
+      future: future,
+      builder: (context, snapshot) {
+        // Se ele não tem dados antes de retornar do webservise (simulando do delay)
+        // Ele exibe o circulo de progresso
+        if (!snapshot.hasData) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        }
 
-        return Row(
-          children: <Widget>[
-            Image.network(
-              c.urlFoto,
-              width: 150,
-            ),
-            // Flexible: ajusta o conteúdo ao espaço
-            Flexible(
-              child: Text(
-                c.nome,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 25,
-                ),
+        List<Carro> carros = snapshot.data;
+        return _listView(carros);
+      },
+    );
+  }
+
+  Container _listView(List<Carro> carros) {
+    return Container(
+      padding: EdgeInsets.all(16),
+      child: ListView.builder(
+        // Aula 106
+        itemCount: carros != null ? carros.length : 0,
+        itemBuilder: (
+          context,
+          index,
+        ) {
+          Carro c = carros[index];
+
+          return Card(
+            color: Colors.grey[100],
+            child: Container(
+              padding: EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Center(
+                    child: Image.network(
+                      c.urlFoto,
+                      width: 250,
+                    ),
+                  ),
+                  // Flexible: ajusta o conteúdo ao espaço
+                  Text(
+                    c.nome,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 25,
+                    ),
+                  ),
+                  Text(
+                    "Descrição..",
+                    style: TextStyle(
+                      fontSize: 16,
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      TextButton(
+                        child: const Text('DETALHES'),
+                        onPressed: () {/* ... */},
+                      ),
+                      const SizedBox(width: 8),
+                      TextButton(
+                        child: const Text('SHARE'),
+                        onPressed: () {/* ... */},
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                  ),
+                ],
               ),
             ),
-          ],
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
