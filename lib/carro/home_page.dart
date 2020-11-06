@@ -22,6 +22,15 @@ class HomePage extends StatelessWidget {
     return FutureBuilder(
       future: future,
       builder: (context, snapshot) {
+        // Tratamento de exceção da Future - Aula 107
+        if (snapshot.hasError) {
+          return Center(
+            child: Text(
+              "Não foi possível buscar os erros",
+              style: TextStyle(color: Colors.red, fontSize: 22),
+            ),
+          );
+        }
         // Se ele não tem dados antes de retornar do webservise (simulando do delay)
         // Ele exibe o circulo de progresso
         if (!snapshot.hasData) {
@@ -57,7 +66,9 @@ class HomePage extends StatelessWidget {
                 children: <Widget>[
                   Center(
                     child: Image.network(
-                      c.urlFoto,
+                      // ?? tipo um IF INTERNÁRIO - se um carro estiver sem foto no servidor, ele coloca uma outra
+                      c.urlFoto ??
+                          "https://s3-sa-east-1.amazonaws.com/videos.livetouchdev.com.br/classicos/Chevrolet_Corvette.png",
                       width: 250,
                     ),
                   ),

@@ -1,23 +1,32 @@
+import 'dart:convert' as convert;
+
 import 'package:carros_flutter/carro/carro.dart';
+import 'package:http/http.dart' as http;
 
 class CarrosApi {
   static Future<List<Carro>> getCarros() async {
-    final carros = List<Carro>();
+    var url = 'https://carros-springboot.herokuapp.com/api/v1/carros';
 
-    await Future.delayed(Duration(seconds: 2));
+    // Retorna a resposta do get no webservice
+    var response = await http.get(url);
 
-    carros.add(Carro(
-        nome: "AUDI GT Spyder",
-        urlFoto:
-            "https://s3-sa-east-1.amazonaws.com/videos.livetouchdev.com.br/esportivos/Porsche_Panamera.png"));
-    carros.add(Carro(
-        nome: "Porsche Panamera",
-        urlFoto:
-            "https://s3-sa-east-1.amazonaws.com/videos.livetouchdev.com.br/esportivos/Porsche_Panamera.png"));
-    carros.add(Carro(
-        nome: "Lamborghini Aventador",
-        urlFoto:
-            "https://s3-sa-east-1.amazonaws.com/videos.livetouchdev.com.br/esportivos/Lamborghini_Aventador.png"));
+    print("GET > $url");
+
+    String json = response.body;
+
+    List list = convert.json.decode(response.body);
+
+    // UMA Maneira de fazer o PARSER
+    // final carros = List<Carro>();
+    //
+    // for (Map map in list) {
+    //   Carro c = Carro.fromJson(map);
+    //   carros.add(c);
+    // }
+
+    // OUTRA Forma de fazer o PARSER (mais utilizada)
+    // Função map percorre a lista original, gera outro objeto (carro)
+    final carros = list.map<Carro>((map) => Carro.fromJson(map)).toList();
 
     return carros;
   }
