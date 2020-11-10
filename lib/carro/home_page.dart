@@ -1,112 +1,67 @@
-import 'package:carros_flutter/carro/carro.dart';
 import 'package:carros_flutter/carro/carros_api.dart';
+import 'package:carros_flutter/carro/carros_listview.dart';
 import 'package:carros_flutter/drawer_list.dart';
+import 'package:carros_flutter/utils/prefs.dart';
 import 'package:flutter/material.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin<HomePage> {
+  TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _initTabs();
+  }
+
+  _initTabs() async {
+    // Primeiro busca o índice nas prefs.
+    int tabIdx = await Prefs.getInt("tabIdx");
+
+    // Depois cria o TabController
+    // No método build na primeira vez ele poderá estar nulo
+    _tabController = TabController(length: 3, vsync: this);
+
+    // Agora que temos o TabController e o índice da tab,
+    // chama o setState para redesenhar a tela
+    setState(() {
+      _tabController.index = tabIdx;
+    });
+
+    _tabController.addListener(() {
+      Prefs.setInt("tabIdx", _tabController.index);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Carros"),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: [
+            Tab(text: "Clássicos"),
+            Tab(text: "Esportivos"),
+            Tab(text: "Luxo"),
+          ],
+        ),
       ),
-      body: _body(),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          CarrosListView(TipoCarro.classicos),
+          CarrosListView(TipoCarro.esportivos),
+          CarrosListView(TipoCarro.luxo),
+        ],
+      ),
       drawer: DrawerList(),
-    );
-  }
-
-  _body() {
-    Future<List<Carro>> future = CarrosApi.getCarros();
-
-    // Aula 106
-    return FutureBuilder(
-      future: future,
-      builder: (context, snapshot) {
-        // Tratamento de exceção da Future - Aula 107
-        if (snapshot.hasError) {
-          return Center(
-            child: Text(
-              "Não foi possível buscar os erros",
-              style: TextStyle(color: Colors.red, fontSize: 22),
-            ),
-          );
-        }
-        // Se ele não tem dados antes de retornar do webservise (simulando do delay)
-        // Ele exibe o circulo de progresso
-        if (!snapshot.hasData) {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-
-        List<Carro> carros = snapshot.data;
-        return _listView(carros);
-      },
-    );
-  }
-
-  Container _listView(List<Carro> carros) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      child: ListView.builder(
-        // Aula 106
-        itemCount: carros != null ? carros.length : 0,
-        itemBuilder: (
-          context,
-          index,
-        ) {
-          Carro c = carros[index];
-
-          return Card(
-            color: Colors.grey[100],
-            child: Container(
-              padding: EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Center(
-                    child: Image.network(
-                      // ?? tipo um IF INTERNÁRIO - se um carro estiver sem foto no servidor, ele coloca uma outra
-                      c.urlFoto ??
-                          "https://s3-sa-east-1.amazonaws.com/videos.livetouchdev.com.br/classicos/Chevrolet_Corvette.png",
-                      width: 250,
-                    ),
-                  ),
-                  // Flexible: ajusta o conteúdo ao espaço
-                  Text(
-                    c.nome,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 25,
-                    ),
-                  ),
-                  Text(
-                    "Descrição..",
-                    style: TextStyle(
-                      fontSize: 16,
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: <Widget>[
-                      TextButton(
-                        child: const Text('DETALHES'),
-                        onPressed: () {/* ... */},
-                      ),
-                      const SizedBox(width: 8),
-                      TextButton(
-                        child: const Text('SHARE'),
-                        onPressed: () {/* ... */},
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
     );
   }
 }

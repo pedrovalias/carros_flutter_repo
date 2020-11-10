@@ -2,6 +2,8 @@ import 'dart:convert';
 // declara a biblioteca e atribui uma variavel para chamar
 import 'package:carros_flutter/pages/api_response.dart';
 import 'package:carros_flutter/login/usuario.dart';
+import 'package:carros_flutter/utils/prefs.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
 // classe simples que vai encapsular a lógica para chamar o webservice
@@ -37,7 +39,9 @@ class LoginApi {
       Map mapResponse = json.decode(response.body);
 
       if (response.statusCode == 200) {
-        final user = Usuario.fromJSON(mapResponse);
+        final user = Usuario.fromJson(mapResponse);
+
+        user.save();
 
         return ApiResponse.ok(user);
       }
