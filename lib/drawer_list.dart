@@ -1,9 +1,20 @@
 import 'package:carros_flutter/login/login_page.dart';
+import 'package:carros_flutter/login/usuario.dart';
 import 'package:carros_flutter/utils/nav.dart';
 import 'package:flutter/material.dart';
 
 class DrawerList extends StatelessWidget {
-  const DrawerList({Key key}) : super(key: key);
+  Future<Usuario> future = Usuario.get();
+
+  UserAccountsDrawerHeader _header(Usuario user) {
+    return UserAccountsDrawerHeader(
+      accountName: Text(user.nome),
+      accountEmail: Text(user.email),
+      currentAccountPicture: CircleAvatar(
+        backgroundImage: NetworkImage(user.urlFoto),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -11,12 +22,13 @@ class DrawerList extends StatelessWidget {
       child: Drawer(
         child: ListView(
           children: <Widget>[
-            UserAccountsDrawerHeader(
-              accountName: Text("Pedro Valias"),
-              accountEmail: Text("pedro@pedro.com.br"),
-              currentAccountPicture: CircleAvatar(
-                backgroundColor: Colors.amber,
-              ),
+            FutureBuilder<Usuario>(
+              builder: (context, snapshot) {
+                Usuario user = snapshot.data;
+
+                return user != null ? _header(user) : Container();
+              },
+              future: future,
             ),
             ListTile(
               leading: Icon(Icons.star),
@@ -51,6 +63,7 @@ class DrawerList extends StatelessWidget {
   }
 
   _onclickLogout(BuildContext context) {
+    Usuario.clear();
     Navigator.pop(context);
     push(context, LoginPage(), replace: true);
   }
