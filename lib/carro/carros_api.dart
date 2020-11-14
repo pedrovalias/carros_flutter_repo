@@ -1,4 +1,5 @@
 import 'package:carros_flutter/carro/carro.dart';
+import 'package:carros_flutter/login/usuario.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 
@@ -10,15 +11,25 @@ class TipoCarro {
 
 class CarrosApi {
   static Future<List<Carro>> getCarros(String tipo) async {
+    Usuario user = await Usuario.get();
+
+    Map<String, String> headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer ${user.token}"
+    };
+
+    // Print pra teste
+    // print(headers);
+
     var url =
-        'https://carros-springboot.herokuapp.com/api/v1/carros/tipo/$tipo';
+        'https://carros-springboot.herokuapp.com/api/v2/carros/tipo/$tipo';
 
     // Retorna a resposta do get no webservice
-    var response = await http.get(url);
+    var response = await http.get(url, headers: headers);
 
     print("GET > $url");
 
-    // String json = response.body;
+    String json = response.body;
 
     List list = convert.json.decode(response.body);
 
@@ -32,7 +43,7 @@ class CarrosApi {
 
     // OUTRA Forma de fazer o PARSER (mais utilizada)
     // Função map percorre a lista original, gera outro objeto (carro)
-    final carros = list.map<Carro>((map) => Carro.fromJson(map)).toList();
+    List<Carro> carros = list.map<Carro>((map) => Carro.fromJson(map)).toList();
 
     return carros;
   }

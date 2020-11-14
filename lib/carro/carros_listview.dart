@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:carros_flutter/carro/carro.dart';
+import 'package:carros_flutter/carro/carro_page.dart';
 import 'package:carros_flutter/carro/carros_api.dart';
+import 'package:carros_flutter/utils/nav.dart';
 import 'package:flutter/material.dart';
 
 // ListView genérico
@@ -14,41 +18,54 @@ class CarrosListView extends StatefulWidget {
 
 class _CarrosListViewState extends State<CarrosListView>
     with AutomaticKeepAliveClientMixin<CarrosListView> {
+  List<Carro> carros;
+
+  // Quando se atribui o StreamController a uma variável se mantém aberto o fluxod e dados
+  final _streamController = StreamController<List<Carro>>();
+
   @override
   // Sobrescreve o método para TRUE para manter o conteudo das abas ativo
   bool get wantKeepAlive => true;
 
   @override
+  void initState() {
+    super.initState();
+
+    _loadCarros();
+  }
+
+  _loadCarros() async {
+    List<Carro> carros = await CarrosApi.getCarros(widget.tipo);
+
+    _streamController.add(carros);
+  }
+
+  @override
   Widget build(BuildContext context) {
     // USANDO O KEEPALIVE, NECESSARIO CHAMAR O SUPER DA CLASSE
     super.build(context);
-    return _body();
-  }
 
-  _body() {
-    Future<List<Carro>> future = CarrosApi.getCarros(widget.tipo);
+    print("CarrosListView build ${widget.tipo}");
 
-    // Aula 106
-    return FutureBuilder(
-      future: future,
+    return StreamBuilder(
+      stream: _streamController.stream,
       builder: (context, snapshot) {
-        // Tratamento de exceção da Future - Aula 107
         if (snapshot.hasError) {
           return Center(
             child: Text(
-              "Não foi possível buscar os erros",
-              style: TextStyle(color: Colors.red, fontSize: 22),
+              "Não foi possível buscar os carros",
+              style: TextStyle(
+                color: Colors.red,
+                fontSize: 22,
+              ),
             ),
           );
         }
-        // Se ele não tem dados antes de retornar do webservise (simulando do delay)
-        // Ele exibe o circulo de progresso
         if (!snapshot.hasData) {
           return Center(
             child: CircularProgressIndicator(),
           );
         }
-
         List<Carro> carros = snapshot.data;
         return _listView(carros);
       },
@@ -101,7 +118,7 @@ class _CarrosListViewState extends State<CarrosListView>
                     children: <Widget>[
                       TextButton(
                         child: const Text('DETALHES'),
-                        onPressed: () {/* ... */},
+                        onPressed: () => _onClickCarro(c),
                       ),
                       const SizedBox(width: 8),
                       TextButton(
@@ -118,5 +135,18 @@ class _CarrosListViewState extends State<CarrosListView>
         },
       ),
     );
+  }
+
+  _onClickCarro(Carro c) {
+    push(context, CarroPage(c));
+  }
+
+  // Metodo responsavel por gerenciar a memoria das telas
+  @override
+  void dispose() {
+    super.dispose();
+
+    // Fechar o fluxo de dados
+    _streamController.close();
   }
 }
